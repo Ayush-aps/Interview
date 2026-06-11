@@ -53,9 +53,15 @@ const Home = () => {
                 </Link>
               )}
 
-              <button className="w-full sm:w-auto px-6 py-3.5 bg-[#0B0F19]/60 backdrop-blur-sm hover:bg-slate-800/80 border border-slate-800 text-slate-200 font-semibold rounded-xl transition-all duration-300 flex items-center justify-center gap-2 transform hover:-translate-y-0.5">
+              {/* Replace the old button with this anchor tag */}
+              <a 
+                href="https://drive.google.com/file/d/1JKHLfKxKmr-XKn91Mq9XKHVCgm5gaLHe/view?usp=sharing" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="w-full sm:w-auto px-6 py-3.5 bg-[#0B0F19]/60 backdrop-blur-sm hover:bg-slate-800/80 border border-slate-800 text-slate-200 font-semibold rounded-xl transition-all duration-300 flex items-center justify-center gap-2 transform hover:-translate-y-0.5"
+              >
                 Watch Demo
-              </button>
+              </a>
             </div>
 
 

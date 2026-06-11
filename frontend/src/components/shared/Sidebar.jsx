@@ -29,7 +29,7 @@ const Sidebar = () => {
   const handleLogout = async () => {
     try {
 
-      await axios.post("http://localhost:8000/api/user/logout");
+      await axios.post("https://intervuex-paxn.onrender.com/api/user/logout");
 
     } catch (error) {
       console.error("Logout error:", error.response?.data?.message || error.message);

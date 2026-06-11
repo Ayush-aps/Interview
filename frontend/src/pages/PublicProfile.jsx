@@ -21,7 +21,7 @@ const PublicProfile = () => {
     const fetchPublicProfile = async () => {
       try {
         const token = localStorage.getItem("token"); 
-        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/user/public/${identifier}`, {
+        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://intervuex-paxn.onrender.com'}/api/user/public/${identifier}`, {
           headers: token ? { Authorization: `Bearer ${token}` } : {}
         });
         setProfileData(res.data.user);

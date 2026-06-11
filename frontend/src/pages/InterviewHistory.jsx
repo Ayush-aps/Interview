@@ -16,7 +16,7 @@ export default function InterviewHistory() {
     const fetchHistory = async () => {
       try {
         const token = localStorage.getItem("token");
-        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+        const API_URL = import.meta.env.VITE_API_URL || 'https://intervuex-paxn.onrender.com';
         
         const res = await axios.get(`${API_URL}/api/report/all`, {
           headers: { Authorization: `Bearer ${token}` }

@@ -35,7 +35,7 @@ const Dashboard = () => {
     const fetchDashboardData = async () => {
       try {
         const token = localStorage.getItem("token");
-        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+        const API_URL = import.meta.env.VITE_API_URL || 'https://intervuex-paxn.onrender.com';
         
         // Fetch User Data
         const userRes = await axios.get(`${API_URL}/api/user/profile`, {

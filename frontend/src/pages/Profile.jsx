@@ -47,7 +47,7 @@ const Profile = () => {
   const fetchProfile = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.get("http://localhost:8000/api/user/profile", {
+      const res = await axios.get("https://intervuex-paxn.onrender.com/api/user/profile", {
         headers: { Authorization: `Bearer ${token}` },
       });
       
@@ -115,7 +115,7 @@ const Profile = () => {
     try {
       const token = localStorage.getItem("token");
       
-      const { data } = await axios.post("http://localhost:8000/api/user/upload", formData, {
+      const { data } = await axios.post("https://intervuex-paxn.onrender.com/api/user/upload", formData, {
         headers: { 
           "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${token}` 
@@ -155,7 +155,7 @@ const Profile = () => {
         techStack: formData.techStack.split(",").map(t => t.trim()).filter(t => t !== "")
       };
 
-      await axios.put("http://localhost:8000/api/user/profile", payload, {
+      await axios.put("https://intervuex-paxn.onrender.com/api/user/profile", payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
 

@@ -24,10 +24,10 @@ export default function Report() {
         const token = localStorage.getItem("token");
         
         const [reportRes, interviewRes] = await Promise.all([
-          axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/report/${id}`, {
+          axios.get(`${import.meta.env.VITE_API_URL || 'https://intervuex-paxn.onrender.com'}/api/report/${id}`, {
             headers: { Authorization: `Bearer ${token}` }
           }),
-          axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/interview/${id}`, {
+          axios.get(`${import.meta.env.VITE_API_URL || 'https://intervuex-paxn.onrender.com'}/api/interview/${id}`, {
             headers: { Authorization: `Bearer ${token}` }
           })
         ]);

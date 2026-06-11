@@ -62,7 +62,7 @@ const AIInterview = () => {
     const fetchInterview = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/interview/${id}`, {
+        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://intervuex-paxn.onrender.com'}/api/interview/${id}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         
@@ -205,7 +205,7 @@ const AIInterview = () => {
 
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/interview/${id}/message`, payload, {
+      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'https://intervuex-paxn.onrender.com'}/api/interview/${id}/message`, payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const aiMsgObj = { role: "ai", content: res.data.aiMessage };
@@ -234,7 +234,7 @@ const AIInterview = () => {
       const token = localStorage.getItem("token");
       const languageId = language === "javascript" ? 63 : language === "python" ? 71 : language === "java" ? 62 : language === "cpp" ? 54 : 63;
       
-      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/interview/compile`, 
+      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'https://intervuex-paxn.onrender.com'}/api/interview/compile`, 
         { sourceCode: code, languageId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -253,8 +253,8 @@ const AIInterview = () => {
       
       stopHardware(); 
 
-      await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/interview/${id}/complete`, {}, { headers: { Authorization: `Bearer ${token}` }});
-      await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/report/generate/${id}`, {}, { headers: { Authorization: `Bearer ${token}` }});
+      await axios.put(`${import.meta.env.VITE_API_URL || 'https://intervuex-paxn.onrender.com'}/api/interview/${id}/complete`, {}, { headers: { Authorization: `Bearer ${token}` }});
+      await axios.post(`${import.meta.env.VITE_API_URL || 'https://intervuex-paxn.onrender.com'}/api/report/generate/${id}`, {}, { headers: { Authorization: `Bearer ${token}` }});
       
       navigate(`/report/${id}`, { replace: true });
     } catch (error) {
@@ -271,8 +271,8 @@ const AIInterview = () => {
       
       stopHardware(); 
 
-      await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/interview/${id}/complete`, {}, { headers: { Authorization: `Bearer ${token}` }});
-      await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/report/generate/${id}`, {}, { headers: { Authorization: `Bearer ${token}` }});
+      await axios.put(`${import.meta.env.VITE_API_URL || 'https://intervuex-paxn.onrender.com'}/api/interview/${id}/complete`, {}, { headers: { Authorization: `Bearer ${token}` }});
+      await axios.post(`${import.meta.env.VITE_API_URL || 'https://intervuex-paxn.onrender.com'}/api/report/generate/${id}`, {}, { headers: { Authorization: `Bearer ${token}` }});
       
       navigate(`/report/${id}`, { replace: true });
     } catch (error) {

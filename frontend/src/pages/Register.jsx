@@ -23,7 +23,7 @@ const Register = () => {
     setError("");
 
     try {
-      const response = await axios.post("http://localhost:8000/api/user/register", formData);
+      const response = await axios.post("https://intervuex-paxn.onrender.com/api/user/register", formData);
       
       if (response.data.success) {
         localStorage.setItem("token", response.data.token);
@@ -42,7 +42,7 @@ const Register = () => {
   const handleGoogleSuccess = async (credentialResponse) => {
     const toastId = toast.loading("Verifying with Google...");
     try {
-      const res = await axios.post("http://localhost:8000/api/user/google", {
+      const res = await axios.post("https://intervuex-paxn.onrender.com/api/user/google", {
         credential: credentialResponse.credential,
       });
 

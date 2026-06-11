@@ -70,7 +70,7 @@ export default function InterviewSetup() {
     const fetchProfile = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/user/profile`, {
+        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://intervuex-paxn.onrender.com'}/api/user/profile`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setProfileData(res.data.user);
@@ -122,7 +122,7 @@ export default function InterviewSetup() {
       };
 
       const res = await axios.post(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/interview/start`,
+        `${import.meta.env.VITE_API_URL || 'https://intervuex-paxn.onrender.com'}/api/interview/start`,
         payload,
         { headers: { Authorization: `Bearer ${token}` } }
       );

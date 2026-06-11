@@ -76,7 +76,7 @@ const ResumeAnalyser = () => {
     try {
       const token = localStorage.getItem("token"); 
       
-      const { data } = await axios.post("https://intervuex-paxn.onrender.com/resume/upload", formData, {
+      const { data } = await axios.post("https://intervuex-paxn.onrender.com/api/resume/upload", formData, {
         headers: { 
           "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${token}` 

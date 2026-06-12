@@ -147,7 +147,7 @@ export default function InterviewSetup() {
   const selectedDiff = difficulties.find((d) => d.value === difficulty);
 
   return (
-    <div style={{ fontFamily: "'DM Sans', sans-serif" }} className="min-h-screen bg-[#060810] text-white px-4 py-8 sm:py-12 flex items-start justify-center">
+    <div style={{ fontFamily: "'DM Sans', sans-serif" }} className="min-h-screen bg-[#060810] text-white px-0 py-8 sm:py-12 flex items-start justify-center">
       <style>{`
         .setup-card {
           background: linear-gradient(145deg, rgba(255,255,255,0.035) 0%, rgba(255,255,255,0.01) 100%);

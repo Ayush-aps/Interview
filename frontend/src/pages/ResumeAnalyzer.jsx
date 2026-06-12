@@ -114,7 +114,7 @@ const ResumeAnalyser = () => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto py-8 px-4 sm:px-6 lg:px-8 text-slate-200">
+    <div className="max-w-5xl mx-auto py-8 px-0 sm:px-6 lg:px-8 text-slate-200">
       <div className="mb-8 text-center max-w-2xl mx-auto">
         <h1 className="text-3xl md:text-4xl font-bold text-white tracking-tight mb-4 flex items-center justify-center gap-3">
           <FaMagic className="text-indigo-500" /> AI Resume Analyzer

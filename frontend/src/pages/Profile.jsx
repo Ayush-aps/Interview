@@ -179,7 +179,7 @@ const Profile = () => {
 
   if (!isEditing) {
     return (
-      <div className="max-w-5xl mx-auto py-8 px-4 sm:px-6 lg:px-8 text-slate-200">
+      <div className="max-w-5xl mx-auto py-8 px-0 sm:px-6 lg:px-8 text-slate-200">
         
         {/* Banner & Avatar Section */}
         <div className="bg-[#0B0F19]/60 backdrop-blur-md rounded-2xl border border-slate-800/80 shadow-xl overflow-hidden mb-8 relative">

@@ -78,7 +78,7 @@ const Leaderboard = () => {
   }
 
   return (
-    <div className="max-w-6xl mx-auto py-8 px-4 sm:px-6 lg:px-8 text-slate-200 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className="max-w-6xl mx-auto py-8 px-0 sm:px-6 lg:px-8 text-slate-200 animate-in fade-in slide-in-from-bottom-4 duration-700">
       
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-12 gap-6">
         <div className="w-full lg:w-auto">

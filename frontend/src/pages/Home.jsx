@@ -103,11 +103,11 @@ const Home = () => {
 
           <div className="lg:col-span-7 relative w-full lg:h-[480px] mt-8 lg:mt-0 animate-in fade-in slide-in-from-right-8 duration-700">
             {/* The Floating Neon Hologram Brain */}
-            <div className="absolute -top-16 left-1/3 z-20 hidden md:block animate-bounce [animation-duration:4s]">
+            {/* <div className="absolute -top-16 left-1/3 z-20 hidden md:block animate-bounce [animation-duration:4s]">
               <div className="relative p-4 bg-indigo-900/10 rounded-full border border-indigo-500/30 shadow-[0_0_50px_rgba(99,102,241,0.3)] backdrop-blur-md">
                 <Brain size={56} className="text-indigo-400 drop-shadow-[0_0_15px_rgba(99,102,241,0.8)] animate-pulse" />
               </div>
-            </div>
+            </div> */}
 
             <div className="w-full h-full bg-[#0B0F19]/80 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-2xl backdrop-blur-md grid grid-cols-1 md:grid-cols-2 gap-4">
 

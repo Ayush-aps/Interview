@@ -181,7 +181,7 @@ Feel free to fork this repository and submit a pull request.
 
 ## 👨‍💻 Author
 
-**Abinash Mishra**
+**Ayush Pratap Singh**
 
 Built with ❤️ using React, Node.js, MongoDB, Gemini AI, and modern web technologies.
 

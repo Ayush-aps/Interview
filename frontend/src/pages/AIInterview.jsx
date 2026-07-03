@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Editor from "@monaco-editor/react";
 import axios from "axios";
+import { API_BASE_URL } from "../lib/api";
 import { 
   Mic, Send, SquareSquare, Play, TerminalSquare, 
   Bot, Loader2, StopCircle, Clock, Code2, MessageSquare, Video
@@ -62,7 +63,7 @@ const AIInterview = () => {
     const fetchInterview = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://intervuex-paxn.onrender.com'}/api/interview/${id}`, {
+        const res = await axios.get(`${API_BASE_URL}/api/interview/${id}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         
@@ -97,7 +98,7 @@ const AIInterview = () => {
       } catch (error) {
         console.error("Failed to load interview", error);
         alert("Interview not found or unauthorized");
-        navigate("/dashboard/home");
+        navigate("/dashboard");
       }
     };
 
@@ -205,7 +206,7 @@ const AIInterview = () => {
 
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'https://intervuex-paxn.onrender.com'}/api/interview/${id}/message`, payload, {
+      const res = await axios.post(`${API_BASE_URL}/api/interview/${id}/message`, payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const aiMsgObj = { role: "ai", content: res.data.aiMessage };
@@ -234,7 +235,7 @@ const AIInterview = () => {
       const token = localStorage.getItem("token");
       const languageId = language === "javascript" ? 63 : language === "python" ? 71 : language === "java" ? 62 : language === "cpp" ? 54 : 63;
       
-      const res = await axios.post(`${import.meta.env.VITE_API_URL || 'https://intervuex-paxn.onrender.com'}/api/interview/compile`, 
+      const res = await axios.post(`${API_BASE_URL}/api/interview/compile`, 
         { sourceCode: code, languageId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -246,6 +247,50 @@ const AIInterview = () => {
     }
   };
 
+  const handleSubmitCode = async () => {
+    if (!code.trim()) {
+      toast.error("Write some code before submitting it.");
+      return;
+    }
+
+    if (isRecording) toggleRecording();
+    window.speechSynthesis.cancel();
+
+    const submitNote = userInput.trim() || "Submitted code.";
+    setMessages((prev) => [...prev, { role: "user", content: submitNote }]);
+    setUserInput("");
+    setIsSending(true);
+
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.post(
+        `${API_BASE_URL}/api/interview/${id}/message`,
+        {
+          userMessage: submitNote,
+          codeSubmitted: code,
+          languageUsed: language,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      const aiMsgObj = { role: "ai", content: res.data.aiMessage };
+      setMessages((prev) => [...prev, aiMsgObj]);
+      speakText(res.data.aiMessage);
+    } catch (error) {
+      console.error("Code Submit Error:", error);
+      const errorMessage = error.response?.data?.message || error.message || "";
+      if (errorMessage.includes("429") || errorMessage.includes("quota") || errorMessage.includes("exhausted")) {
+        toast.error("AI limit maxed out for today! We are experiencing viral traffic.");
+      } else {
+        toast.error("Failed to submit code. Please try again.");
+      }
+    } finally {
+      setIsSending(false);
+    }
+  };
+
   const autoSubmitInterview = async () => {
     setIsLoading(true);
     try {
@@ -253,8 +298,8 @@ const AIInterview = () => {
       
       stopHardware(); 
 
-      await axios.put(`${import.meta.env.VITE_API_URL || 'https://intervuex-paxn.onrender.com'}/api/interview/${id}/complete`, {}, { headers: { Authorization: `Bearer ${token}` }});
-      await axios.post(`${import.meta.env.VITE_API_URL || 'https://intervuex-paxn.onrender.com'}/api/report/generate/${id}`, {}, { headers: { Authorization: `Bearer ${token}` }});
+      await axios.put(`${API_BASE_URL}/api/interview/${id}/complete`, {}, { headers: { Authorization: `Bearer ${token}` }});
+      await axios.post(`${API_BASE_URL}/api/report/generate/${id}`, {}, { headers: { Authorization: `Bearer ${token}` }});
       
       navigate(`/report/${id}`, { replace: true });
     } catch (error) {
@@ -271,8 +316,8 @@ const AIInterview = () => {
       
       stopHardware(); 
 
-      await axios.put(`${import.meta.env.VITE_API_URL || 'https://intervuex-paxn.onrender.com'}/api/interview/${id}/complete`, {}, { headers: { Authorization: `Bearer ${token}` }});
-      await axios.post(`${import.meta.env.VITE_API_URL || 'https://intervuex-paxn.onrender.com'}/api/report/generate/${id}`, {}, { headers: { Authorization: `Bearer ${token}` }});
+      await axios.put(`${API_BASE_URL}/api/interview/${id}/complete`, {}, { headers: { Authorization: `Bearer ${token}` }});
+      await axios.post(`${API_BASE_URL}/api/report/generate/${id}`, {}, { headers: { Authorization: `Bearer ${token}` }});
       
       navigate(`/report/${id}`, { replace: true });
     } catch (error) {
@@ -309,7 +354,7 @@ const AIInterview = () => {
       <header className="h-16 border-b border-slate-800/80 flex items-center justify-between px-4 sm:px-6 bg-[#0B0F19]/80 backdrop-blur-md z-20 shrink-0">
         <div className="flex items-center gap-3 sm:gap-4">
           <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.8)]" />
-          <h1 className="font-bold text-sm sm:text-base hidden sm:block truncate max-w-[200px] lg:max-w-md">
+          <h1 className="font-bold text-sm sm:text-base hidden sm:block truncate max-w-50 lg:max-w-md">
             {interview?.topic.toUpperCase()}
           </h1>
           <span className="px-2.5 py-1 bg-white/5 rounded-md text-[10px] sm:text-xs font-bold text-slate-400 border border-white/10 uppercase tracking-widest hidden sm:block">
@@ -369,6 +414,20 @@ const AIInterview = () => {
               Run Code
             </button>
           </div>
+
+          <div className="px-4 py-3 border-b border-slate-800/80 bg-[#050812] flex items-center gap-3 flex-wrap">
+            <button
+              type="button"
+              onClick={handleSubmitCode}
+              disabled={isSending || !code.trim()}
+              className="flex items-center gap-2 text-xs sm:text-sm bg-indigo-600/15 text-indigo-300 border border-indigo-500/30 px-4 py-2 rounded-lg hover:bg-indigo-500 hover:text-white transition-all disabled:opacity-40 font-bold"
+            >
+              <Send size={14} /> Submit Code
+            </button>
+            <span className="text-[11px] sm:text-xs text-slate-500">
+              Run code to test it, then submit it here for evaluation.
+            </span>
+          </div>
           
           <div className="flex-1 relative w-full">
             <Editor
@@ -418,7 +477,7 @@ const AIInterview = () => {
               <Bot size={24} className={isSpeaking ? "text-indigo-400" : "text-slate-400"} />
             </div>
             <div className="ml-4 flex flex-col">
-              <span className="font-extrabold text-base sm:text-lg bg-gradient-to-r from-indigo-400 to-fuchsia-400 bg-clip-text text-transparent">IntervueX Engine</span>
+              <span className="font-extrabold text-base sm:text-lg bg-linear-to-r from-indigo-400 to-fuchsia-400 bg-clip-text text-transparent">IntervueX Engine</span>
               <span className="text-[10px] sm:text-xs text-slate-400 flex items-center gap-1.5 font-medium mt-0.5">
                 {isSpeaking ? (
                    <><span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_5px_#10b981]"/> Speaking...</>
@@ -469,7 +528,7 @@ const AIInterview = () => {
                 type="text"
                 value={userInput}
                 onChange={(e) => setUserInput(e.target.value)}
-                placeholder={isRecording ? "Listening... speak now" : "Type your logic or click run to submit code..."}
+                placeholder={isRecording ? "Listening... speak now" : "Type your explanation or follow-up here"}
                 className="flex-1 bg-[#0B0F19] border border-slate-700/50 hover:border-slate-600 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder:text-slate-500"
                 disabled={isSending}
               />

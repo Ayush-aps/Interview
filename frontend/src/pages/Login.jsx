@@ -4,6 +4,7 @@ import axios from "axios";
 import { Mail, Lock, ArrowRight, Loader2, Sparkles } from "lucide-react";
 import toast from "react-hot-toast";
 import { GoogleLogin } from '@react-oauth/google'; 
+import { API_BASE_URL } from "../lib/api";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -22,7 +23,7 @@ const Login = () => {
     setError("");
 
     try {
-      const response = await axios.post("https://intervuex-paxn.onrender.com/api/user/login", formData);
+      const response = await axios.post(`${API_BASE_URL}/api/user/login`, formData);
       
       if (response.data.success) {
         localStorage.setItem("token", response.data.token);
@@ -42,7 +43,7 @@ const Login = () => {
   const handleGoogleSuccess = async (credentialResponse) => {
     const toastId = toast.loading("Verifying with Google...");
     try {
-      const res = await axios.post("https://intervuex-paxn.onrender.com/api/user/google", {
+      const res = await axios.post(`${API_BASE_URL}/api/user/google`, {
         credential: credentialResponse.credential,
       });
 

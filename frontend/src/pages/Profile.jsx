@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
+import { API_BASE_URL } from "../lib/api";
 import { 
   FaUser, FaBriefcase, FaGraduationCap, FaBuilding, FaSave, 
   FaSpinner, FaExclamationCircle, FaCheckCircle, FaCog, 
@@ -47,7 +48,7 @@ const Profile = () => {
   const fetchProfile = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.get("https://intervuex-paxn.onrender.com/api/user/profile", {
+      const res = await axios.get(`${API_BASE_URL}/api/user/profile`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       
@@ -115,7 +116,7 @@ const Profile = () => {
     try {
       const token = localStorage.getItem("token");
       
-      const { data } = await axios.post("https://intervuex-paxn.onrender.com/api/user/upload", formData, {
+      const { data } = await axios.post(`${API_BASE_URL}/api/user/upload`, formData, {
         headers: { 
           "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${token}` 
@@ -155,7 +156,7 @@ const Profile = () => {
         techStack: formData.techStack.split(",").map(t => t.trim()).filter(t => t !== "")
       };
 
-      await axios.put("https://intervuex-paxn.onrender.com/api/user/profile", payload, {
+      await axios.put(`${API_BASE_URL}/api/user/profile`, payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
 

@@ -25,6 +25,26 @@ const questionFeedbackSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  topic: {
+    type: String,
+    default: ""
+  },
+  questionType: {
+    type: String,
+    default: "conceptual"
+  },
+  plannerAction: {
+    type: String,
+    default: "ask_conceptual_question"
+  },
+  difficultyBefore: {
+    type: String,
+    default: "medium"
+  },
+  difficultyAfter: {
+    type: String,
+    default: "medium"
+  },
   userAnswer: {
     type: String,
     default: ""
@@ -150,6 +170,11 @@ const interviewSchema = new mongoose.Schema({
   duration: {
     type: Number,  
     default: null
+  },
+
+  agentState: {
+    type: mongoose.Schema.Types.Mixed,
+    default: {}
   }
 
 }, { timestamps: true });

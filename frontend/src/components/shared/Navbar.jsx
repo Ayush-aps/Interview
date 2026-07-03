@@ -4,6 +4,7 @@ import {
   Menu, X, LayoutDashboard, Bot, FileText, Trophy, User, LogOut 
 } from "lucide-react";
 import axios from "axios";
+import { API_BASE_URL } from "../../lib/api";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -19,7 +20,7 @@ const Navbar = () => {
 
   const handleLogout = async () => {
     try {
-      await axios.post("https://intervuex-paxn.onrender.com/api/user/logout");
+      await axios.post(`${API_BASE_URL}/api/user/logout`);
     } catch (error) {
       console.error(error);
     } finally {

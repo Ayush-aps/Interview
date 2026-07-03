@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { API_BASE_URL } from "../lib/api";
 import { 
   TrendingUp, 
   Clock, 
@@ -35,10 +36,9 @@ const Dashboard = () => {
     const fetchDashboardData = async () => {
       try {
         const token = localStorage.getItem("token");
-        const API_URL = import.meta.env.VITE_API_URL || 'https://intervuex-paxn.onrender.com';
         
         // Fetch User Data
-        const userRes = await axios.get(`${API_URL}/api/user/profile`, {
+        const userRes = await axios.get(`${API_BASE_URL}/api/user/profile`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         const user = userRes.data.user;
@@ -46,7 +46,7 @@ const Dashboard = () => {
         // Fetch Resume Data (For ATS Score)
         let fetchedAtsScore = 0;
         try {
-          const resumeRes = await axios.get(`${API_URL}/api/resume`, {
+          const resumeRes = await axios.get(`${API_BASE_URL}/api/resume`, {
             headers: { Authorization: `Bearer ${token}` }
           });
           if (resumeRes.data?.resume?.parsedData) {
@@ -58,7 +58,7 @@ const Dashboard = () => {
         // Fetch REAL Report History
         let reports = [];
         try {
-          const reportRes = await axios.get(`${API_URL}/api/report/all`, {
+          const reportRes = await axios.get(`${API_BASE_URL}/api/report/all`, {
             headers: { Authorization: `Bearer ${token}` }
           });
           reports = reportRes.data.reports || [];
@@ -104,7 +104,8 @@ const Dashboard = () => {
 
       } catch (error) {
         console.error(error);
-        toast.error("Failed to load dashboard data.");
+        // Same id prevents duplicate toasts in StrictMode double-effect during dev.
+        toast.error("Failed to load dashboard data.", { id: "dashboard-load-error" });
       } finally {
         setLoading(false);
       }

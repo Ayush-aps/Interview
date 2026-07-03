@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { API_BASE_URL } from "../lib/api";
 import { 
   Trophy, ArrowLeft, CheckCircle, Target, 
   TrendingUp, AlertTriangle, BookOpen, MessageSquare,
@@ -24,10 +25,10 @@ export default function Report() {
         const token = localStorage.getItem("token");
         
         const [reportRes, interviewRes] = await Promise.all([
-          axios.get(`${import.meta.env.VITE_API_URL || 'https://intervuex-paxn.onrender.com'}/api/report/${id}`, {
+          axios.get(`${API_BASE_URL}/api/report/${id}`, {
             headers: { Authorization: `Bearer ${token}` }
           }),
-          axios.get(`${import.meta.env.VITE_API_URL || 'https://intervuex-paxn.onrender.com'}/api/interview/${id}`, {
+          axios.get(`${API_BASE_URL}/api/interview/${id}`, {
             headers: { Authorization: `Bearer ${token}` }
           })
         ]);

@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import toast from "react-hot-toast";
+import { API_BASE_URL } from "../lib/api";
 import { 
   Sparkles, Settings2, User, Briefcase, Code2, 
   Loader2, ArrowRight, FileText, CheckCircle2, AlertCircle 
@@ -70,7 +72,7 @@ export default function InterviewSetup() {
     const fetchProfile = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://intervuex-paxn.onrender.com'}/api/user/profile`, {
+        const res = await axios.get(`${API_BASE_URL}/api/user/profile`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setProfileData(res.data.user);
@@ -108,13 +110,19 @@ export default function InterviewSetup() {
     setIsStarting(true);
     try {
       const token = localStorage.getItem("token");
-      
-      const finalTopic = setupMode === "profile" 
-        ? `Comprehensive ${profileData?.targetRole || "Software"} Interview (Focus: ${profileData?.techStack?.join(", ") || "General"})`
+
+      const roleCategory = setupMode === "profile"
+        ? (profileData?.targetRole || "fullstack")
+        : selectedRole;
+
+      const finalTopic = setupMode === "profile"
+        ? (profileData?.targetRole || selectedRole || "fullstack")
         : topic;
 
       const payload = {
         topic: finalTopic,
+        roleCategory,
+        selectedRole,
         difficulty,
         duration,
         setupMode,
@@ -122,7 +130,7 @@ export default function InterviewSetup() {
       };
 
       const res = await axios.post(
-        `${import.meta.env.VITE_API_URL || 'https://intervuex-paxn.onrender.com'}/api/interview/start`,
+        `${API_BASE_URL}/api/interview/start`,
         payload,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -430,7 +438,8 @@ export default function InterviewSetup() {
             </div>
 
             <button
-              className="w-full bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-bold py-4 sm:py-5 px-6 rounded-2xl flex items-center justify-center gap-3 transition-all hover:-translate-y-1 shadow-[0_8px_30px_rgba(79,70,229,0.3)] hover:shadow-[0_12px_40px_rgba(79,70,229,0.5)] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none text-base sm:text-lg"
+              className="w-full text-white font-bold py-4 sm:py-5 px-6 rounded-2xl flex items-center justify-center gap-3 transition-all hover:-translate-y-1 shadow-[0_8px_30px_rgba(79,70,229,0.3)] hover:shadow-[0_12px_40px_rgba(79,70,229,0.5)] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none text-base sm:text-lg"
+              style={{ backgroundImage: "linear-gradient(90deg, #4f46e5 0%, #6366f1 100%)" }}
               onClick={startInterview}
               disabled={permState !== "granted" || isStarting}
             >
@@ -442,7 +451,7 @@ export default function InterviewSetup() {
             </button>
 
             {permState !== "granted" && (
-              <p className="text-center text-xs text-slate-500 mt-[-16px]">
+              <p className="text-center text-xs text-slate-500" style={{ marginTop: -16 }}>
                 Hardware access is required to analyze verbal responses and logic.
               </p>
             )}

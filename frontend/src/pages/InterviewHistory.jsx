@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
+import { API_BASE_URL } from "../lib/api";
 import { ArrowLeft, ChevronLeft, ChevronRight, Eye, Calendar, Award, Code } from "lucide-react";
 
 export default function InterviewHistory() {
@@ -16,9 +17,7 @@ export default function InterviewHistory() {
     const fetchHistory = async () => {
       try {
         const token = localStorage.getItem("token");
-        const API_URL = import.meta.env.VITE_API_URL || 'https://intervuex-paxn.onrender.com';
-        
-        const res = await axios.get(`${API_URL}/api/report/all`, {
+        const res = await axios.get(`${API_BASE_URL}/api/report/all`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         
@@ -82,7 +81,7 @@ export default function InterviewHistory() {
                   {currentItems.map((report) => (
                     <tr 
                       key={report._id} 
-                      className="hover:bg-white/[0.02] transition-colors group cursor-pointer"
+                      className="hover:bg-white/2 transition-colors group cursor-pointer"
                       onClick={() => navigate(`/report/${report.interviewId?._id || report.interviewId}`)}
                     >
                       {/* Topic */}

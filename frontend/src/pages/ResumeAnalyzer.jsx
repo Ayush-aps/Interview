@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import axios from "axios";
+import { API_BASE_URL } from "../lib/api";
 import { 
   FaCloudUploadAlt, FaFilePdf, FaSpinner, FaCheckCircle, 
   FaExclamationTriangle, FaChartLine, FaTimes, FaMagic, FaBrain 
@@ -18,7 +19,7 @@ const ResumeAnalyser = () => {
       try {
         const token = localStorage.getItem("token"); 
         
-        const { data } = await axios.get("https://intervuex-paxn.onrender.com/api/resume", {
+        const { data } = await axios.get(`${API_BASE_URL}/api/resume`, {
           headers: {
             Authorization: `Bearer ${token}` 
           },
@@ -76,7 +77,7 @@ const ResumeAnalyser = () => {
     try {
       const token = localStorage.getItem("token"); 
       
-      const { data } = await axios.post("https://intervuex-paxn.onrender.com/api/resume/upload", formData, {
+      const { data } = await axios.post(`${API_BASE_URL}/api/resume/upload`, formData, {
         headers: { 
           "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${token}` 

@@ -11,6 +11,7 @@ import {
 import toast from "react-hot-toast";
 import axios from "axios";
 import { Gift } from "lucide-react";
+import { API_BASE_URL } from "../../lib/api";
 
 
 
@@ -29,7 +30,7 @@ const Sidebar = () => {
   const handleLogout = async () => {
     try {
 
-      await axios.post("https://intervuex-paxn.onrender.com/api/user/logout");
+      await axios.post(`${API_BASE_URL}/api/user/logout`);
 
     } catch (error) {
       console.error("Logout error:", error.response?.data?.message || error.message);

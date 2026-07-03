@@ -1,11 +1,14 @@
 import Report from "../models/report.model.js";
 import Interview from "../models/interview.model.js";
+import User from "../models/user.model.js";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { generateInterviewReport } from "../agents/reportAgent.js";
 
 // Call Gemini AI
 
 const callAI = async (prompt) => {
-  const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
+  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+  const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({
     model: "gemini-2.5-flash",
   });
@@ -94,37 +97,54 @@ export const generateReport = async (req, res) => {
       })
       .join("\n\n");
 
-    // build report prompt
-    const reportPrompt = `
-You are IntervueX, an expert interview coach.
-Analyze this ${interview.topic} interview conversation and generate a detailed report.
+    const user = await User.findById(interview.userId);
 
-Interview topic: ${interview.topic}
-Difficulty: ${interview.difficulty}
-Total Score: ${interview.totalScore}/100
+    let parsed;
+    try {
+      parsed = await generateInterviewReport({
+        topic: interview.topic,
+        difficulty: interview.difficulty,
+        totalScore: interview.totalScore,
+        conversation,
+        questionFeedbacks: interview.questionFeedbacks,
+        candidateProfile: {
+          name: user?.name || "",
+          targetRole: user?.targetRole || "",
+        },
+        memorySummary: {
+          messageCount: interview.messages.length,
+          questionCount: interview.questionFeedbacks.length,
+        },
+        personality: "Friendly",
+      });
+    } catch (error) {
+      const weakTopics = interview.questionFeedbacks.filter((item) => item.score < 6).map((item) => item.question).slice(0, 5);
+      const strongTopics = interview.questionFeedbacks.filter((item) => item.score >= 6).map((item) => item.question).slice(0, 5);
+      const nextInterviewTopic = weakTopics[0] || interview.topic || "core fundamentals";
 
-Full Interview Conversation:
-${conversation}
-
-Per Question Scores:
-${interview.questionFeedbacks
-        .map((f, i) => `Q${i + 1}: ${f.score}/10`)
-        .join("\n")}
-
-Generate a detailed report in EXACTLY this format:
-[SUMMARY]: <2-3 line overall performance summary, be specific and honest>
-[TONE]: <how the candidate communicated, were they clear and confident>
-[STRONG]: <topics or skills they did well, comma separated>
-[WEAK]: <topics or skills they struggled with, comma separated>
-[STUDY]: <specific topics to study next, comma separated>
-[NEXT]: <which topic should they practice next and why, one line>
-`;
-
-    // call AI
-    const aiResponse = await callAI(reportPrompt);
-
-    // parse AI response
-    const parsed = parseReportResponse(aiResponse);
+      parsed = {
+        performanceSummary: `Offline fallback report for ${interview.topic}. The candidate completed the session with a score of ${interview.totalScore}/100.`,
+        toneFeedback: "Communication was evaluated with a deterministic fallback because the AI service was rate-limited.",
+        strongTopics,
+        weakTopics,
+        studyPlan: [
+          {
+            topic: nextInterviewTopic,
+            whatToStudy: `Review ${nextInterviewTopic} and practice explaining it with examples.`,
+            priority: "high",
+          },
+        ],
+        nextInterviewTopic,
+        estimatedReadiness: interview.totalScore >= 75 ? "Ready for advanced rounds" : interview.totalScore >= 60 ? "Close to ready" : "Needs more preparation",
+        topicWiseScore: {
+          conceptual: Math.min(10, Math.max(1, Math.round(interview.totalScore / 12))),
+          coding: Math.min(10, Math.max(1, Math.round(interview.totalScore / 12))),
+          communication: Math.min(10, Math.max(1, Math.round(interview.totalScore / 14))),
+          complexity: Math.min(10, Math.max(1, Math.round(interview.totalScore / 13))),
+          confidence: Math.min(10, Math.max(1, Math.round(interview.totalScore / 14))),
+        },
+      };
+    }
 
     // calculate grade
     const score = interview.totalScore;
@@ -147,6 +167,8 @@ Generate a detailed report in EXACTLY this format:
       weakTopics: parsed.weakTopics,
       studyPlan: parsed.studyPlan,
       nextInterviewTopic: parsed.nextInterviewTopic,
+      topicWiseScore: parsed.topicWiseScore,
+      estimatedReadiness: parsed.estimatedReadiness,
       generatedAt: new Date(),
     });
 

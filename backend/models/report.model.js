@@ -93,6 +93,19 @@ const reportSchema = new mongoose.Schema({
     default: ""
   },
 
+  topicWiseScore: {
+    conceptual: { type: Number, default: 0 },
+    coding: { type: Number, default: 0 },
+    communication: { type: Number, default: 0 },
+    complexity: { type: Number, default: 0 },
+    confidence: { type: Number, default: 0 },
+  },
+
+  estimatedReadiness: {
+    type: String,
+    default: ""
+  },
+
 
   improvedFrom: {
     type: Number,     

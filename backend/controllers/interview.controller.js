@@ -3,11 +3,18 @@ import User from "../models/user.model.js";
 import axios from "axios";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { extractText } from "unpdf"; 
+import {
+  startAgenticInterview,
+  processAgenticAnswer,
+  finalizeAgenticInterview,
+  compileWithJdoodle,
+} from "../services/interviewAgentService.js";
 
 // Call Gemini AI 
 
 const callAI = async (messages) => {
-  const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
+  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+  const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
   const prompt = messages
@@ -82,77 +89,23 @@ const parseSpaceComplexity = (aiMessage) => {
 
 export const startInterview = async (req, res) => {
   try {
-    const { topic, difficulty, type, resumeUrl, duration } = req.body;
-
-    const user = await User.findById(req.userId);
-    if (!user) {
-      return res.status(404).json({ success: false, message: "User not found." });
-    }
-
-    if (!process.env.GOOGLE_API_KEY) {
-      return res.status(500).json({ success: false, message: "Server is missing Gemini API Key." });
-    }
-
-    let extractedResumeText = "";
-    if (resumeUrl) {
-      try {
-        const response = await axios.get(resumeUrl, { responseType: 'arraybuffer' });
-        
-        const buffer = new Uint8Array(response.data);
-        const parsedData = await extractText(buffer);
-        
-        if (typeof parsedData === 'string') {
-          extractedResumeText = parsedData;
-        } else if (parsedData && typeof parsedData.text === 'string') {
-          extractedResumeText = parsedData.text;
-        } else if (parsedData && Array.isArray(parsedData.text)) {
-          extractedResumeText = parsedData.text.join(" ");
-        } else {
-          extractedResumeText = String(parsedData || "");
-        }
-        
-      } catch (err) {
-        console.error("[Backend Error] Could not parse resume PDF:", err.message);
-        extractedResumeText = "";
-      }
-    } else {
-    }
-
-    // Build Prompt with Resume Text
-    const systemPrompt = buildSystemPrompt(
-      topic,
-      difficulty || "medium",
-      user.name,
-      type || "text",
-      extractedResumeText,
-      duration 
-    );
-    
-    const aiResponse = await callAI([
-      { role: "system", content: systemPrompt },
-    ]);
-
-    // Save to MongoDB
-    const interview = await Interview.create({
+    const { topic, roleCategory, selectedRole, difficulty, type, resumeUrl, duration } = req.body;
+    const started = await startAgenticInterview({
       userId: req.userId,
       topic,
-      type: type || "text",
+      roleCategory,
+      selectedRole,
       difficulty: difficulty || "medium",
-      duration: duration || 30, 
-      status: "ongoing",
-      messages: [
-        {
-          role: "ai",
-          content: aiResponse,
-        },
-      ],
+      type: type || "text",
+      resumeUrl,
+      duration: duration || 30,
     });
 
     res.status(201).json({
       success: true,
       message: "Interview started",
-      interviewId: interview._id,
-      aiMessage: aiResponse,
+      interviewId: started.interview._id,
+      aiMessage: started.aiMessage,
     });
   } catch (error) {
     console.error("🔥 [Backend Crash in startInterview]:", error);
@@ -166,65 +119,20 @@ export const startInterview = async (req, res) => {
 export const sendMessage = async (req, res) => {
   try {
     const { userMessage, codeSubmitted, languageUsed } = req.body;
-    const interview = await Interview.findById(req.params.id);
-
-    if (!interview) return res.status(404).json({ success: false, message: "Interview not found" });
-    if (interview.userId.toString() !== req.userId) return res.status(403).json({ success: false, message: "Not allowed" });
-    if (interview.status !== "ongoing") return res.status(400).json({ success: false, message: "Interview is already completed or abandoned" });
-
-    const user = await User.findById(req.userId);
-
-    let contentForAI = userMessage || "";
-    if (codeSubmitted) {
-      contentForAI += `\n\n[CANDIDATE CODE - ${languageUsed}]:\n${codeSubmitted}`;
-    }
-
-    interview.messages.push({
-      role: "user",
-      content: contentForAI,
+    const updated = await processAgenticAnswer({
+      interviewId: req.params.id,
+      userId: req.userId,
+      userMessage,
+      codeSubmitted,
+      languageUsed,
     });
-
-    const conversationHistory = [
-      {
-        role: "system",
-        content: buildSystemPrompt(interview.topic, interview.difficulty, user.name, interview.type, "", interview.duration), 
-      },
-      ...interview.messages.map((msg) => ({
-        role: msg.role === "ai" ? "assistant" : "user",
-        content: msg.content,
-      })),
-    ];
-
-    const aiResponse = await callAI(conversationHistory);
-
-    const questionScore = parseScore(aiResponse);
-    const timeComplexity = parseTimeComplexity(aiResponse);
-    const spaceComplexity = parseSpaceComplexity(aiResponse);
-
-    interview.questionFeedbacks.push({
-      question: interview.messages[interview.messages.length - 2]?.content || "",
-      userAnswer: userMessage || "",
-      codeSubmitted: codeSubmitted || "",
-      languageUsed: languageUsed || "javascript",
-      timeComplexity,
-      spaceComplexity,
-      aiFeedback: aiResponse,
-      score: questionScore,
-    });
-
-    interview.messages.push({
-      role: "ai",
-      content: aiResponse,
-    });
-
-    await interview.save();
 
     res.json({
       success: true,
-      aiMessage: aiResponse,
-      questionScore,
-      timeComplexity,
-      spaceComplexity
+      aiMessage: updated.aiMessage,
+      questionScore: updated.evaluation?.score || 0,
+      timeComplexity: updated.evaluation?.timeComplexity || "",
+      spaceComplexity: updated.evaluation?.spaceComplexity || "",
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -236,68 +144,17 @@ export const sendMessage = async (req, res) => {
 
 export const completeInterview = async (req, res) => {
   try {
-    const interview = await Interview.findById(req.params.id);
-
-    if (!interview) {
-      return res.status(404).json({ success: false, message: "Interview not found" });
-    }
-
-    if (interview.userId.toString() !== req.userId) {
-      return res.status(403).json({ success: false, message: "Not allowed" });
-    }
-
-    const feedbacks = interview.questionFeedbacks;
-    const totalScore =
-      feedbacks.length > 0
-        ? Math.round(
-            (feedbacks.reduce((sum, f) => sum + f.score, 0) /
-              (feedbacks.length * 10)) *
-              100
-          )
-        : 0;
-
-    const summaryPrompt = [
-      {
-        role: "system",
-        content: `You are IntervueX. The interview for ${interview.topic} is now complete.
-        Based on the conversation, give a final summary in this format:
-        [SUMMARY]: <2-3 line overall performance summary>
-        [STRONG]: <topics they were good at, comma separated>
-        [WEAK]: <topics they struggled with, comma separated>
-        [ADVICE]: <one actionable tip to improve>`,
-      },
-      ...interview.messages.map((msg) => ({
-        role: msg.role === "ai" ? "assistant" : "user",
-        content: msg.content,
-      })),
-    ];
-
-    const finalSummary = await callAI(summaryPrompt);
-
-    interview.status = "completed";
-    interview.totalScore = totalScore;
-    interview.completedAt = new Date();
-    interview.messages.push({
-      role: "ai",
-      content: finalSummary,
-    });
-
-    await interview.save();
-
-    await User.findByIdAndUpdate(req.userId, {
-      $inc: {
-        totalInterviews: 1,
-        totalScore: totalScore,
-      },
-      lastActiveDate: new Date(),
+    const finalized = await finalizeAgenticInterview({
+      interviewId: req.params.id,
+      userId: req.userId,
     });
 
     res.json({
       success: true,
       message: "Interview completed",
-      totalScore,
-      finalSummary,
-      isPassed: interview.isPassed,
+      totalScore: finalized.totalScore,
+      finalSummary: finalized.report?.performanceSummary || "Interview completed successfully.",
+      isPassed: finalized.interview.isPassed,
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -375,27 +232,12 @@ export const getAllInterviews = async (req, res) => {
 export const compileCode = async (req, res) => {
   try {
     const { sourceCode, languageId } = req.body;
-
-    const languageMap = {
-      63: { language: 'nodejs', versionIndex: '4' },
-      71: { language: 'python3', versionIndex: '4' },
-      62: { language: 'java', versionIndex: '4' },
-      54: { language: 'cpp', versionIndex: '5' }
-    };
-
-    const numericId = parseInt(languageId) || 63;
-    const selectedLang = languageMap[numericId] || languageMap[63];
-
-
-    const response = await axios.post('https://api.jdoodle.com/v1/execute', {
-      clientId: process.env.JDOODLE_CLIENT_ID,
-      clientSecret: process.env.JDOODLE_CLIENT_SECRET,
-      script: sourceCode || "",
-      language: selectedLang.language,
-      versionIndex: selectedLang.versionIndex
+    const output = await compileWithJdoodle({
+      sourceCode,
+      languageId,
+      jdoodleClientId: process.env.JDOODLE_CLIENT_ID,
+      jdoodleClientSecret: process.env.JDOODLE_CLIENT_SECRET,
     });
-
-    const output = response.data.output;
     res.status(200).json({ output: output || "Execution completed with no output." });
 
   } catch (error) {

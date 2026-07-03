@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom"; 
 import axios from "axios";
+import { API_BASE_URL } from "../lib/api";
 import { 
   FaTrophy, FaCode, 
   FaSearch, FaUser, FaCrown,
@@ -11,17 +12,27 @@ const Leaderboard = () => {
   const [loading, setLoading] = useState(true);
   const [filterRole, setFilterRole] = useState("all");
   const [leaderboardData, setLeaderboardData] = useState([]);
+  const [currentUserRank, setCurrentUserRank] = useState(null);
+  const [currentUserName, setCurrentUserName] = useState("");
 
   // Fetch Real Data from API
   useEffect(() => {
     const fetchLeaderboard = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await axios.get(`${import.meta.env.VITE_API_URL || 'https://intervuex-paxn.onrender.com'}/api/user/leaderboard`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const [leaderboardRes, profileRes] = await Promise.all([
+          axios.get(`${API_BASE_URL}/api/user/leaderboard`, {
+            headers: { Authorization: `Bearer ${token}` }
+          }),
+          axios.get(`${API_BASE_URL}/api/user/profile`, {
+            headers: { Authorization: `Bearer ${token}` }
+          })
+        ]);
 
-        let rawData = res.data.leaderboard.map(user => {
+        setCurrentUserRank(profileRes.data.globalRank || null);
+        setCurrentUserName(profileRes.data.user?.name || "You");
+
+        let rawData = leaderboardRes.data.leaderboard.map(user => {
           let finalScore = 0;
           if (user.averageScore) {
             finalScore = user.averageScore;
@@ -89,6 +100,16 @@ const Leaderboard = () => {
             Compete against top developers worldwide. Your rank is based on your AI interview performance, consistency, and problem-solving skills.
           </p>
         </div>
+
+        {/* {currentUserRank && (
+          <div className="bg-[#0B0F19]/80 border border-slate-800/80 rounded-2xl px-4 py-3 shadow-xl backdrop-blur-md">
+            <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Your Rank</p>
+            <div className="mt-1 flex items-baseline gap-2">
+              <span className="text-3xl font-black text-white">#{currentUserRank}</span>
+              <span className="text-sm text-slate-400 truncate max-w-[200px]">{currentUserName}</span>
+            </div>
+          </div>
+        )} */}
         
         <div className="flex bg-[#050812] p-1.5 rounded-xl border border-slate-800/80 shadow-xl overflow-x-auto w-full lg:w-auto scrollbar-hide">
           {["all", "fullstack", "frontend", "backend", "data"].map((role) => (
@@ -205,7 +226,7 @@ const Leaderboard = () => {
 
         <div className="divide-y divide-slate-800/50">
           {restOfLeaderboard.map((user) => (
-            <div key={user._id} className="grid grid-cols-12 gap-2 md:gap-4 p-4 md:px-6 items-center hover:bg-slate-800/40 transition-colors group">
+            <div key={user._id} className={`grid grid-cols-12 gap-2 md:gap-4 p-4 md:px-6 items-center hover:bg-slate-800/40 transition-colors group ${currentUserRank && user.rank === currentUserRank ? 'bg-indigo-500/10 border-l-2 border-indigo-500' : ''}`}>
               
               <div className="col-span-2 md:col-span-1 text-center font-mono text-base md:text-lg font-black text-slate-500 group-hover:text-white transition-colors">
                 #{user.rank}

@@ -4,6 +4,7 @@ import axios from "axios";
 import { Mail, Lock, User, ArrowRight, Loader2, Brain } from "lucide-react";
 import toast from "react-hot-toast";
 import { GoogleLogin } from '@react-oauth/google'; 
+import { API_BASE_URL } from "../lib/api";
 
 
 const Register = () => {
@@ -23,7 +24,7 @@ const Register = () => {
     setError("");
 
     try {
-      const response = await axios.post("https://intervuex-paxn.onrender.com/api/user/register", formData);
+      const response = await axios.post(`${API_BASE_URL}/api/user/register`, formData);
       
       if (response.data.success) {
         localStorage.setItem("token", response.data.token);
@@ -31,8 +32,9 @@ const Register = () => {
         navigate("/dashboard");
       }
     } catch (err) {
-      setError(err.response?.data?.message || "Something went wrong. Please try again.");
-      const errorMsg = error.response?.data?.message || "Registration failed. Try again.";
+      const message = err.response?.data?.message || "Something went wrong. Please try again.";
+      setError(message);
+      const errorMsg = err.response?.data?.message || "Registration failed. Try again.";
       toast.error(errorMsg, { id: toastId });
     } finally {
       setLoading(false);
@@ -42,7 +44,7 @@ const Register = () => {
   const handleGoogleSuccess = async (credentialResponse) => {
     const toastId = toast.loading("Verifying with Google...");
     try {
-      const res = await axios.post("https://intervuex-paxn.onrender.com/api/user/google", {
+      const res = await axios.post(`${API_BASE_URL}/api/user/google`, {
         credential: credentialResponse.credential,
       });
 
